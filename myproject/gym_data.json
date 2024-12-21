@@ -1,0 +1,22 @@
+{
+    "Chest Day": [
+        {
+            "name": "Bench",
+            "repetitions": "12-10-5",
+            "weight": "15-20-25"
+        },
+        {
+            "name": "Piseps",
+            "repetitions": "15-20-25",
+            "weight": "20-30-40"
+        },
+        {
+            "name": "Hummer",
+            "repetitions": "12-10-10",
+            "weight": "20-25-30"
+        }
+    ],
+    "Back Day": [],
+    "Shoulders Day": [],
+    "Leg Day": []
+}

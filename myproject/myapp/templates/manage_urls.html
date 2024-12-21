@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage External URLs</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f4f7fc;
+            font-family: Arial, sans-serif;
+        }
+        header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        header h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+        .container {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .form-control {
+            border-radius: 8px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-warning {
+            color: #fff;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+        .btn-danger:hover {
+            background-color: #bd2130;
+        }
+        .table {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .table th {
+            background-color: #007bff;
+            color: #fff;
+        }
+        footer {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Manage External URLs</h1>
+    </header>
+
+    <main class="container">
+        <!-- Display Error Message if Exists -->
+        {% if error_message %}
+        <div class="alert alert-danger">
+            {{ error_message }}
+        </div>
+        {% endif %}
+
+        <!-- Add New URL Form -->
+        <section class="bg-white shadow-sm rounded p-4 mb-5">
+            <h2 class="mb-4">Add New URL</h2>
+            <form method="POST" action="" class="add-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+
+                <div class="mb-3">
+                    <label for="url" class="form-label">URL:</label>
+                    <input type="text" id="url" name="url" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <textarea id="description" name="description" class="form-control" rows="3" required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Add URL</button>
+            </form>
+        </section>
+
+        <!-- View and Modify URLs -->
+        <section class="bg-white shadow-sm rounded p-4">
+            <h2 class="mb-4">Current URLs</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">URL</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for url_entry in urls %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_entry.url }}" target="_blank" class="text-primary text-decoration-underline">{{ url_entry.url }}</a>
+                            </td>
+                            <td>{{ url_entry.description }}</td>
+                            <td>
+                                <!-- Edit Link to Edit Page -->
+                                <a href="{% url 'edit_url' url_index=forloop.counter0 %}" class="btn btn-warning btn-sm">Edit</a>
+
+                                <!-- Delete Form (POST method to delete URL) -->
+                                <form method="POST" class="d-inline-block" action="">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="url_index" value="{{ forloop.counter0 }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p class="mb-0">&copy; 2024 Manage URLs. All rights reserved.</p>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

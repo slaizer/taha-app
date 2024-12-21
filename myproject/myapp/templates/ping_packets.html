@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Packet Data (Real-Time)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <h2 class="text-center mb-4">Ping Packet Data (Real-Time)</h2>
+        <table id="pingTable" class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>IP Address</th>
+                    <th>Status</th>
+                    <th>Latency (ms)</th>
+                    <th>Timestamp</th>
+                    <th>History</th>
+                </tr>
+            </thead>
+            <tbody id="pingTableBody">
+                <tr>
+                    <td colspan="5" class="text-center">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+<script>
+    // Function to fetch ping packet data from the server
+    async function fetchPingPackets() {
+        try {
+            const response = await fetch("{% url 'ping_packets_json' %}");
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            updatePingPacketsTable(data);
+        } catch (error) {
+            console.error('Error fetching ping packets:', error);
+        }
+    }
+
+    // Function to update the ping packets table with new data
+    function updatePingPacketsTable(data) {
+        const tableBody = document.getElementById('pingTableBody');
+
+        // Remove all existing rows to prevent duplication
+        tableBody.innerHTML = '';
+
+        // Create a map to store unique IPs to avoid duplication
+        const uniquePackets = {};
+
+        // Loop through new data and add unique rows
+        data.forEach(packet => {
+            if (!uniquePackets[packet.ip_address]) {
+                uniquePackets[packet.ip_address] = packet;
+
+                // Create a new row
+                const row = document.createElement('tr');
+                row.dataset.ipAddress = packet.ip_address;
+                row.innerHTML = `
+                    <td class="ip-address" style="font-weight: bold;">${packet.ip_address}</td>
+                    <td class="status"></td>
+                    <td class="latency"></td>
+                    <td class="timestamp"></td>
+                    <td><a href="/ping_history/${packet.ip_address}/" class="btn btn-link">View History</a></td>
+                `;
+                tableBody.appendChild(row);
+
+                // Update status, latency, and timestamp
+                const statusElement = row.querySelector('.status');
+                const latencyElement = row.querySelector('.latency');
+                const timestampElement = row.querySelector('.timestamp');
+
+                statusElement.innerHTML = `
+                    <span class="badge ${packet.status === 'up' ? 'bg-success' : 'bg-danger'}">
+                        ${packet.status.charAt(0).toUpperCase() + packet.status.slice(1)}
+                    </span>
+                `;
+                latencyElement.innerText = packet.delay !== null ? packet.delay : 'N/A';
+                timestampElement.innerText = packet.timestamp;
+            }
+        });
+
+        // If there are no packets, display a message
+        if (tableBody.children.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No data available</td></tr>';
+        }
+    }
+
+    // Function to update the ping values based on history for a specific IP address
+    async function updatePingValuesFromHistory(ipAddress) {
+        try {
+            const response = await fetch(`/ping_history_json/${ipAddress}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const historyData = await response.json();
+            const latestRecord = historyData[0]; // Assuming the latest record is the first item
+
+            if (latestRecord) {
+                const row = document.querySelector(`tr[data-ip-address="${ipAddress}"]`);
+                if (row) {
+                    const statusElement = row.querySelector('.status');
+                    const latencyElement = row.querySelector('.latency');
+
+                    // Update status and latency
+                    statusElement.innerHTML = `
+                        <span class="badge ${latestRecord.status === 'up' ? 'bg-success' : 'bg-danger'}">
+                            ${latestRecord.status.charAt(0).toUpperCase() + latestRecord.status.slice(1)}
+                        </span>
+                    `;
+                    latencyElement.innerText = latestRecord.delay !== null ? latestRecord.delay : 'N/A';
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching ping history:', error);
+        }
+    }
+
+    // Function to update all ping data
+    async function updateAllPingData() {
+        await fetchPingPackets();
+
+        // Update each row's history values
+        const rows = document.querySelectorAll('#pingTableBody tr');
+        for (const row of rows) {
+            const ipAddress = row.dataset.ipAddress;
+            if (ipAddress) {
+                await updatePingValuesFromHistory(ipAddress);
+            }
+        }
+    }
+
+    // Set interval to refresh data every 5 seconds
+    setInterval(updateAllPingData, 5000);
+    // Fetch initial data on page load
+    updateAllPingData();
+</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

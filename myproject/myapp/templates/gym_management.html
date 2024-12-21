@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GYM Management</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            font-family: 'Arial', sans-serif;
+        }
+        .category-header {
+            background: #4F46E5;
+            color: white;
+        }
+        .btn-edit {
+            background-color: #FFA726;
+        }
+        .btn-edit:hover {
+            background-color: #FB8C00;
+        }
+        .btn-home {
+            background-color: #4F46E5;
+        }
+        .btn-home:hover {
+            background-color: #4338CA;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-800">GYM Management</h1>
+                <p class="text-gray-600">Easily manage your workout categories and exercises</p>
+            </div>
+            <a href="/dashboard/" class="btn-home text-white px-4 py-2 rounded-md shadow-md">Return to Dashboard</a>
+        </div>
+
+        <!-- Categories and Workouts -->
+        <div class="space-y-6">
+            {% for category, exercises in workouts.items %}
+                <div class="bg-white rounded-lg shadow-md">
+                    <!-- Category Header -->
+                    <div class="px-4 py-2 category-header flex justify-between items-center">
+                        <h2 class="text-xl font-semibold">{{ category }}</h2>
+                        <button class="btn btn-primary px-3 py-1 text-sm rounded-md hover:bg-indigo-700"
+                                onclick="toggleAddWorkoutForm('{{ category }}')">
+                            Add Exercise
+                        </button>
+                    </div>
+
+                    <!-- Exercises List -->
+                    <ul class="p-4 space-y-4">
+                        {% for exercise in exercises %}
+                            <li class="flex justify-between items-center bg-gray-50 p-4 rounded-md shadow-sm">
+                                <span class="text-lg text-gray-800 font-bold">
+                                    {{ exercise.name }} -
+                                    <span class="text-lg text-gray-600 font-bold">{{ exercise.repetitions }} reps</span> -
+                                    <span class="text-lg text-gray-600 font-bold">{{ exercise.weight }} kg</span>
+                                </span>
+                                <div class="flex space-x-2">
+                                    <!-- Edit Button -->
+                                    <button class="btn-edit text-white px-3 py-1 rounded-md"
+                                            onclick="toggleEditForm('{{ category }}', {{ forloop.counter0 }}, '{{ exercise.name }}', '{{ exercise.repetitions }}', '{{ exercise.weight }}')">
+                                        Edit
+                                    </button>
+                                    <!-- Delete Form -->
+                                    <form method="POST" class="inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="category" value="{{ category }}">
+                                        <input type="hidden" name="workout_index" value="{{ forloop.counter0 }}">
+                                        <button type="submit" class="btn bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Add Workout Form -->
+                    <div id="add-workout-form-{{ category }}" class="hidden px-4 pb-4">
+                        <form method="POST" class="flex items-center space-x-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add">
+                            <input type="hidden" name="category" value="{{ category }}">
+                            <!-- Workout Name Input -->
+                            <input
+                                type="text"
+                                name="workout_name"
+                                placeholder="Workout Name"
+                                class="form-input w-1/3 px-4 py-2 border rounded-md focus:ring-indigo-500 font-bold text-gray-800"
+                                required>
+                            <!-- Repetitions Input -->
+                            <input
+                                type="text"
+                                name="repetitions"
+                                placeholder="Repetitions"
+                                class="form-input w-1/4 px-4 py-2 border rounded-md focus:ring-indigo-500 font-bold text-gray-800"
+                                required>
+                            <!-- Weight Input -->
+                            <input
+                                type="text"
+                                name="weight"
+                                placeholder="Weight (kg)"
+                                class="form-input w-1/4 px-4 py-2 border rounded-md focus:ring-indigo-500 font-bold text-gray-800"
+                                required>
+                            <!-- Add Button -->
+                            <button type="submit" class="btn bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
+                                Add
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Edit Workout Form -->
+        <div id="edit-form" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6 shadow-lg w-96">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Edit Workout</h3>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit">
+                    <input type="hidden" id="edit-category" name="category">
+                    <input type="hidden" id="edit-index" name="workout_index">
+                    <div class="mb-4">
+                        <label for="edit-name" class="block text-sm font-medium text-gray-600">Workout Name</label>
+                        <input type="text" id="edit-name" name="workout_name" class="form-input w-full px-4 py-2 border rounded-md focus:ring-indigo-500 font-bold text-gray-800" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-repetitions" class="block text-sm font-medium text-gray-600">Repetitions</label>
+                        <input type="text" id="edit-repetitions" name="repetitions" class="form-input w-full px-4 py-2 border rounded-md focus:ring-indigo-500 font-bold text-gray-800" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-weight" class="block text-sm font-medium text-gray-600">Weight (kg)</label>
+                        <input type="text" id="edit-weight" name="weight" class="form-input w-full px-4 py-2 border rounded-md focus:ring-indigo-500 font-bold text-gray-800" required>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button type="submit" class="btn bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600">
+                            Save
+                        </button>
+                        <button type="button" class="btn bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400"
+                                onclick="document.getElementById('edit-form').classList.add('hidden')">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleAddWorkoutForm(category) {
+            const form = document.getElementById(`add-workout-form-${category}`);
+            form.classList.toggle('hidden');
+        }
+
+        function toggleEditForm(category, index, name, repetitions, weight) {
+            document.getElementById('edit-category').value = category;
+            document.getElementById('edit-index').value = index;
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-repetitions').value = repetitions;
+            document.getElementById('edit-weight').value = weight;
+            document.getElementById('edit-form').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case and Calendar Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .case-details {
+            display: none;
+            position: absolute;
+            top: 20px;
+            left: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            z-index: 10;
+            width: 250px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            transform: perspective(1000px) rotateX(0deg);
+            opacity: 0;
+        }
+
+        .case-details.show {
+            display: block;
+            transform: perspective(1000px) rotateX(15deg);
+            opacity: 1;
+        }
+
+        .case-name {
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+        }
+
+        .case-name:hover {
+            color: #0056b3;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-10">
+        <h2 class="text-center text-3xl font-bold mb-8">Case and Calendar Management</h2>
+
+        <!-- Form to add a new case -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h3 class="text-lg font-bold mb-4">Add New Case</h3>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="case_name" class="block text-sm font-medium text-gray-700">Case Name</label>
+                    <input type="text" id="case_name" name="case_name" required
+                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                </div>
+                <div class="mb-4">
+                    <label for="priority" class="block text-sm font-medium text-gray-700">Priority</label>
+                    <select id="priority" name="priority" required
+                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                        <option value="high">High</option>
+                        <option value="normal">Normal</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
+                    <input type="date" id="date" name="date" required
+                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                </div>
+                <div class="mb-4">
+                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="description" name="description" rows="3" required
+                        class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
+                </div>
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none">
+                    Add Case
+                </button>
+            </form>
+            <div class="mt-3">
+                <a href="{% url 'manage_cases' %}"
+                    class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none">
+                    Manage Cases
+                </a>
+            </div>
+        </div>
+
+        <!-- Calendar view -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-bold mb-6">{{ month_name }} {{ year }}</h3>
+            <div class="flex justify-between mb-4">
+                <a href="?month={{ prev_month }}&year={{ prev_year }}"
+                    class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">
+                    Previous Month
+                </a>
+                <a href="/dashboard/" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Return to Home</a>
+                <a href="?month={{ next_month }}&year={{ next_year }}"
+                    class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">
+                    Next Month
+                </a>
+            </div>
+            <div class="grid grid-cols-7 gap-4">
+                {% for day_data in calendar_data %}
+                <div
+                    class="h-36 border p-4 rounded-lg relative {% if day_data.day == None %}bg-gray-200{% else %}bg-gray-100 hover:bg-gray-50 transition-all duration-200{% endif %}">
+                    {% if day_data.day %}
+                    <strong>{{ day_data.day }}</strong>
+                    <ul class="mt-2">
+                        {% for duty in day_data.duties %}
+                        <li>{{ duty }}</li>
+                        {% endfor %}
+                        {% for case in day_data.cases %}
+                        <li class="relative">
+                            <span class="case-name">{{ case.case_name }}</span>
+                            <div class="case-details">
+                                <p><strong>Priority:</strong> {{ case.priority }}</p>
+                                <p><strong>Description:</strong> {{ case.description }}</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to handle clicking on the case name to show/hide details
+        document.addEventListener('DOMContentLoaded', function () {
+            const caseNames = document.querySelectorAll('.case-name');
+
+            caseNames.forEach(caseName => {
+                caseName.addEventListener('click', function () {
+                    const caseDetails = this.nextElementSibling;
+
+                    if (caseDetails) {
+                        // Toggle the visibility and the 3D effect class
+                        caseDetails.classList.toggle('show');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Item</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #d6e0f0, #eef2f7);
+        }
+
+        .form-container {
+            background: linear-gradient(135deg, #ffffff, #f9f9f9);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .form-container:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-control {
+            background: linear-gradient(135deg, #e7ebf0, #ffffff);
+            border: 1px solid #d1d5db;
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7);
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+
+        .form-control:focus {
+            box-shadow: inset 3px 3px 8px rgba(0, 0, 0, 0.15), inset -3px -3px 8px rgba(255, 255, 255, 0.8);
+            outline: none;
+        }
+
+        .btn-3d {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            box-shadow: 0px 8px 15px rgba(99, 102, 241, 0.4);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+
+        .btn-3d:hover {
+            transform: translateY(-3px);
+            box-shadow: 0px 15px 25px rgba(99, 102, 241, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7);
+            color: #4b5563;
+            border: none;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200">
+    <div class="form-container w-full max-w-lg p-8">
+        <h2 class="text-center text-4xl font-extrabold mb-8 text-gray-700">Add Item</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-6">
+                <label for="device_name" class="block text-gray-600 font-medium mb-2">Device Name</label>
+                <input type="text" name="device_name" id="device_name" class="form-control w-full p-4 rounded-lg" required>
+            </div>
+            <div class="mb-6">
+                <label for="sn" class="block text-gray-600 font-medium mb-2">SN</label>
+                <input type="text" name="sn" id="sn" class="form-control w-full p-4 rounded-lg" required>
+            </div>
+            <div class="mb-6">
+                <label for="model" class="block text-gray-600 font-medium mb-2">Model</label>
+                <input type="text" name="model" id="model" class="form-control w-full p-4 rounded-lg" required>
+            </div>
+            <div class="mb-6">
+                <label for="location" class="block text-gray-600 font-medium mb-2">Location</label>
+                <input type="text" name="location" id="location" class="form-control w-full p-4 rounded-lg" required>
+            </div>
+            <div class="mb-6">
+                <label for="status" class="block text-gray-600 font-medium mb-2">Status</label>
+                <select name="status" id="status" class="form-control w-full p-4 rounded-lg" required>
+                    <option value="" disabled selected>Select status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Maintenance">Maintenance</option>
+                </select>
+            </div>
+            <div class="mb-6">
+                <label for="purchase_date" class="block text-gray-600 font-medium mb-2">Purchase Date</label>
+                <input type="date" name="purchase_date" id="purchase_date" class="form-control w-full p-4 rounded-lg" required>
+            </div>
+            <div class="mb-6">
+                <label for="contact_number" class="block text-gray-600 font-medium mb-2">Contact Number</label>
+                <input type="text" name="contact_number" id="contact_number" class="form-control w-full p-4 rounded-lg" required>
+            </div>
+            <div class="mb-6">
+                <label for="email_address" class="block text-gray-600 font-medium mb-2">Email Address</label>
+                <input type="email" name="email_address" id="email_address" class="form-control w-full p-4 rounded-lg" required>
+            </div>
+            <div class="flex gap-4">
+                <button type="submit" class="btn-3d w-full py-3 text-lg font-bold">Add Item</button>
+                <a href="{% url 'dashboard' %}" class="btn-secondary w-full py-3 text-lg font-bold text-center">Back to Dashboard</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

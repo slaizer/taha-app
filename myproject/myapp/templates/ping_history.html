@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping History for {{ ip_address }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <h2 class="text-center mb-4">Ping History for {{ ip_address }} (Real-Time)</h2>
+
+        <!-- Filter Form -->
+        <form id="filterForm" class="mb-4">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="statusFilter" class="form-label">Status:</label>
+                    <select id="statusFilter" class="form-select">
+                        <option value="">All</option>
+                        <option value="up">Up</option>
+                        <option value="down">Down</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="delayMin" class="form-label">Min Latency (ms):</label>
+                    <input type="number" id="delayMin" class="form-control" placeholder="Enter min latency">
+                </div>
+                <div class="col-md-2">
+                    <label for="delayMax" class="form-label">Max Latency (ms):</label>
+                    <input type="number" id="delayMax" class="form-control" placeholder="Enter max latency">
+                </div>
+                <div class="col-md-2">
+                    <label for="timestampStart" class="form-label">Start Timestamp:</label>
+                    <input type="datetime-local" id="timestampStart" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="timestampEnd" class="form-label">End Timestamp:</label>
+                    <input type="datetime-local" id="timestampEnd" class="form-control">
+                </div>
+            </div>
+            <div class="text-center">
+                <button type="button" class="btn btn-primary me-2" onclick="fetchPingHistory()">Apply Filters</button>
+                <button type="button" class="btn btn-secondary" onclick="savePingHistory()">Save Filtered Data</button>
+            </div>
+        </form>
+
+        <!-- Ping History Table -->
+        <table id="historyTable" class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Status</th>
+                    <th>Latency (ms)</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody id="historyTableBody">
+                <tr>
+                    <td colspan="3" class="text-center">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Back to All Ping Packets Button -->
+        <div class="text-center mt-4">
+            <a href="{% url 'ping_packets' %}" class="btn btn-secondary">Back to Ping Packets</a>
+        </div>
+    </div>
+
+    <script>
+        function fetchPingHistory() {
+            const status = document.getElementById('statusFilter').value;
+            const delayMin = document.getElementById('delayMin').value;
+            const delayMax = document.getElementById('delayMax').value;
+            const timestampStart = document.getElementById('timestampStart').value;
+            const timestampEnd = document.getElementById('timestampEnd').value;
+
+            let url = "{% url 'ping_history_json' ip_address %}?";
+            if (status) url += `status=${status}&`;
+            if (delayMin) url += `delay_min=${delayMin}&`;
+            if (delayMax) url += `delay_max=${delayMax}&`;
+            if (timestampStart) url += `timestamp_start=${timestampStart}&`;
+            if (timestampEnd) url += `timestamp_end=${timestampEnd}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('historyTableBody');
+                    tableBody.innerHTML = '';  // Clear the existing data
+
+                    data.forEach(packet => {
+                        const row = `
+                            <tr>
+                                <td>
+                                    <span class="badge ${packet.status === 'up' ? 'bg-success' : 'bg-danger'}">
+                                        ${packet.status.charAt(0).toUpperCase() + packet.status.slice(1)}
+                                    </span>
+                                </td>
+                                <td>${packet.delay !== null ? packet.delay : 'N/A'}</td>
+                                <td>${packet.timestamp}</td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching ping history:', error);
+                });
+        }
+
+        function savePingHistory() {
+            const status = document.getElementById('statusFilter').value;
+            const delayMin = document.getElementById('delayMin').value;
+            const delayMax = document.getElementById('delayMax').value;
+            const timestampStart = document.getElementById('timestampStart').value;
+            const timestampEnd = document.getElementById('timestampEnd').value;
+
+            let url = "{% url 'ping_history_json' ip_address %}";
+            let options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: status,
+                    delay_min: delayMin,
+                    delay_max: delayMax,
+                    timestamp_start: timestampStart,
+                    timestamp_end: timestampEnd
+                })
+            };
+
+            fetch(url, options)
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                })
+                .catch(error => {
+                    console.error('Error saving ping history:', error);
+                });
+        }
+
+        // Refresh every 5 seconds
+        setInterval(fetchPingHistory, 5000);
+        // Fetch initial data
+        fetchPingHistory();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Items</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
+        <h2 class="text-3xl font-bold mb-8 text-center text-gray-800">Items List</h2>
+
+        <!-- Filter Form -->
+        <form method="GET" class="mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <input type="text" name="device_name" class="p-2 border rounded" placeholder="Device Name"
+                    value="{{ filters.device_name }}">
+                <input type="text" name="sn" class="p-2 border rounded" placeholder="SN" value="{{ filters.sn }}">
+                <input type="text" name="model" class="p-2 border rounded" placeholder="Model" value="{{ filters.model }}">
+                <input type="text" name="location" class="p-2 border rounded" placeholder="Location" value="{{ filters.location }}">
+                <input type="text" name="status" class="p-2 border rounded" placeholder="Status" value="{{ filters.status }}">
+                <input type="date" name="purchase_date" class="p-2 border rounded" placeholder="Purchase Date"
+                    value="{{ filters.purchase_date }}">
+                <input type="text" name="contact_number" class="p-2 border rounded" placeholder="Contact Number"
+                    value="{{ filters.contact_number }}">
+                <input type="email" name="email_address" class="p-2 border rounded" placeholder="Email Address"
+                    value="{{ filters.email_address }}">
+                <button type="submit" class="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 col-span-1 lg:col-span-4">
+                    Apply Filters
+                </button>
+            </div>
+        </form>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+            <table class="table-auto w-full border-collapse border border-gray-300">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="py-3 px-4 border">Device Name</th>
+                        <th class="py-3 px-4 border">SN</th>
+                        <th class="py-3 px-4 border">Model</th>
+                        <th class="py-3 px-4 border">Location</th>
+                        <th class="py-3 px-4 border">Status</th>
+                        <th class="py-3 px-4 border">Purchase Date</th>
+                        <th class="py-3 px-4 border">Contact Number</th>
+                        <th class="py-3 px-4 border">Email Address</th>
+                        <th class="py-3 px-4 border">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr class="hover:bg-gray-100">
+                        <td class="py-2 px-4 border">{{ item.device_name }}</td>
+                        <td class="py-2 px-4 border">{{ item.sn }}</td>
+                        <td class="py-2 px-4 border">{{ item.model }}</td>
+                        <td class="py-2 px-4 border">{{ item.location }}</td>
+                        <td class="py-2 px-4 border">{{ item.status }}</td>
+                        <td class="py-2 px-4 border">{{ item.purchase_date }}</td>
+                        <td class="py-2 px-4 border">{{ item.contact_number }}</td>
+                        <td class="py-2 px-4 border">{{ item.email_address }}</td>
+                        <td class="py-2 px-4 border">
+                            <a href="{% url 'modify_item' forloop.counter0 %}" class="text-yellow-500 hover:underline">Modify</a>
+                            <a href="{% url 'delete_item' forloop.counter0 %}" class="text-red-500 hover:underline ml-2">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Doughnut Chart -->
+        <div class="my-10 flex justify-center">
+            <div class="w-full max-w-md">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Back to Dashboard -->
+        <div class="text-center">
+            <a href="{% url 'dashboard' %}" class="inline-block py-2 px-6 bg-gray-600 text-white font-semibold rounded-md hover:bg-gray-700">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Doughnut Chart Script -->
+    <script>
+        const statusLabels = Object.keys({{ status_count|safe }});  // Example: ['Active', 'Inactive']
+        const statusData = Object.values({{ status_count|safe }}); // Example: [5, 3]
+
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: ['#34d399', '#f87171', '#fbbf24', '#60a5fa'], // Tailwind Colors
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Item Status Distribution',
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
